@@ -23,6 +23,5 @@ public class NotificationResponseDTO extends BaseDTO {
     private String message;
     private NotificationStatus status;
     private NotificationChannel channel;
-    private String metadata;
     private LocalDateTime sentAt;
 }

@@ -9,7 +9,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notifications", indexes = {
+@Table(name = "notifications_for_FTS", indexes = {
         @Index(name = "idx_notification_id", columnList = "notification_id"),
         @Index(name = "idx_user_id", columnList = "user_id"),
         @Index(name = "idx_status", columnList = "status"),
@@ -52,8 +52,7 @@ public class Notification extends BaseEntity {
     @Column(name = "channel", nullable = false, length = 20)
     private NotificationChannel channel;
 
-    @Column(name = "metadata", columnDefinition = "TEXT")
-    private String metadata;
+
 
     @Column(name = "sent_at")
     private LocalDateTime sentAt;

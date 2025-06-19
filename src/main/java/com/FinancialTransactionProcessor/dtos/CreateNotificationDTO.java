@@ -18,5 +18,4 @@ public class CreateNotificationDTO {
     private String title;
     private String message;
     private NotificationChannel channel;
-    private String metadata;
 }

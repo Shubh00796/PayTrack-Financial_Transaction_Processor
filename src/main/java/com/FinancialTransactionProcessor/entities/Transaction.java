@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "transactions", indexes = {
+@Table(name = "transactions_for_FTS", indexes = {
         @Index(name = "idx_transaction_id", columnList = "transaction_id"),
         @Index(name = "idx_from_account", columnList = "from_account_id"),
         @Index(name = "idx_to_account", columnList = "to_account_id"),
