@@ -5,11 +5,9 @@ import com.FinancialTransactionProcessor.enums.TransactionStatus;
 import com.FinancialTransactionProcessor.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Type;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Entity
 @Table(name = "transactions", indexes = {
