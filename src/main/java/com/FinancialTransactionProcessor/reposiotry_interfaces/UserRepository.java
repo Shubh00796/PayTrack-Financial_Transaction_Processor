@@ -1,6 +1,7 @@
 package com.FinancialTransactionProcessor.reposiotry_interfaces;
 
 import com.FinancialTransactionProcessor.entities.User;
+import com.FinancialTransactionProcessor.enums.UserStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,9 +15,11 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUserId(String userId);
     Optional<User> findByEmail(String email);
-    List<User> findByStatus(String status);
+    List<User> findByStatus(UserStatus status);
     Page<User> findAll(Pageable pageable);
 
     @Query("SELECT u FROM User u WHERE u.phoneNumber = :phoneNumber")
     Optional<User> findByPhoneNumber(@Param("phoneNumber") String phoneNumber);
+
+    boolean existsByUserId(String userId);
 }
