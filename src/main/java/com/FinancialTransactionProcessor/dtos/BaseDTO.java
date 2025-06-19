@@ -5,9 +5,6 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public abstract class BaseDTO {
 
     private LocalDateTime createdAt;
