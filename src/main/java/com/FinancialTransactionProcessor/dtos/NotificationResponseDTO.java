@@ -13,8 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@Builder
-public class NotificationResponseDTO extends BaseDTO {
+public class NotificationResponseDTO {
 
     private String notificationId;
     private String userId;

@@ -23,8 +23,8 @@ public class UserRepoService {
                 .orElseThrow(() -> new ResourceNotFoundException("User with ID " + userId + " not found"));
     }
 
-    public List<User> findByStatus(UserStatus status) {
-        return userRepository.findByStatus(status);
+    public Page<User> findByStatus(UserStatus status, Pageable pageable) {
+        return userRepository.findByStatus(status, pageable);
     }
 
     public Optional<User> findByEmail(String email) {
@@ -34,6 +34,13 @@ public class UserRepoService {
     public boolean existsByUserId(String userId) {
         return userRepository.existsByUserId(userId);
     }
+
+
+    public User getByPhoneNumber(String phoneNumber) {
+        return userRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("User with phone number " + phoneNumber + " not found"));
+    }
+
 
     public List<User> findAllUsers() {
         return userRepository.findAll();

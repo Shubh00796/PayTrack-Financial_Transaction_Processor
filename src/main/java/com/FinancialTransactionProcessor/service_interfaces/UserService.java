@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserService {
 
@@ -24,8 +25,6 @@ public interface UserService {
 
     void deleteUser(String userId);
 
-    void updateUserInfo(String userId, UpdateUserDTO updateUserDTO);
-
     void updateUserStatus(String userId, UserStatus status);
 
     boolean isUserActive(String userId);
@@ -36,5 +35,5 @@ public interface UserService {
 
     void unlockUser(String userId);
 
-    List<UserResponseDTO> getUsersByRole(String role);
+    Optional<UserResponseDTO> getUserByPhoneNumber(String phoneNumber);
 }
