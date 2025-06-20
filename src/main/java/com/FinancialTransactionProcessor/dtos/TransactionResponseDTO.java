@@ -4,15 +4,16 @@ import com.FinancialTransactionProcessor.enums.PaymentMethod;
 import com.FinancialTransactionProcessor.enums.TransactionStatus;
 import com.FinancialTransactionProcessor.enums.TransactionType;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionResponseDTO extends BaseDTO {
+public class TransactionResponseDTO  {
 
     private String transactionId;
     private String referenceId;

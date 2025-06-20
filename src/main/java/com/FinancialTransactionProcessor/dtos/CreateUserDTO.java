@@ -2,15 +2,20 @@ package com.FinancialTransactionProcessor.dtos;
 
 import com.FinancialTransactionProcessor.enums.KycStatus;
 import com.FinancialTransactionProcessor.enums.UserStatus;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -23,6 +28,16 @@ public class CreateUserDTO {
     private String email;
     @NotBlank(message = "User ID is required")
     private String userId;
+
+    @PastOrPresent(message = "CreatedAt cannot be in the future")
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PastOrPresent(message = "UpdatedAt cannot be in the future")
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false, updatable = false)
+    private LocalDateTime updatedAt;
 
     private String phoneNumber;
 

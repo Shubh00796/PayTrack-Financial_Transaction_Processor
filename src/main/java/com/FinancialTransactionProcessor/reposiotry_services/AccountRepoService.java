@@ -31,8 +31,8 @@ public class AccountRepoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Account with ID " + accountId + " not found (locked)"));
     }
 
-    public List<Account> findByUserId(String userId) {
-        return accountRepository.findByUserId(userId);
+    public Page<Account> findByUserId(String userId, Pageable pageable) {
+        return accountRepository.findByUserId(userId, pageable);
     }
 
     public Page<Account> findByStatus(AccountStatus status, Pageable pageable) {
@@ -68,11 +68,24 @@ public class AccountRepoService {
         return accountRepository.save(account);
     }
 
+    public Account update(Account account) {
+        return accountRepository.save(account);
+    }
+
+
     public void delete(Account account) {
         accountRepository.delete(account);
     }
 
     public boolean existsByAccountId(String accountId) {
         return accountRepository.findByAccountId(accountId).isPresent();
+    }
+
+    public boolean existsByUserId(String userId) {
+        return accountRepository.findByUserId(userId).isPresent();
+    }
+
+    public Page<Account> getAllAccounts(Pageable pageable) {
+        return accountRepository.findAll(pageable);
     }
 }

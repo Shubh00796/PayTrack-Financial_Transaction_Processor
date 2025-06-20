@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponseDTO extends BaseDTO {
+public class UserResponseDTO  {
 
     private String userId;
     private String email;

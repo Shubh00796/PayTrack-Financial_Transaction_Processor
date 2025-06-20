@@ -24,7 +24,10 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query("SELECT a FROM Account a WHERE a.accountId = :accountId")
     Optional<Account> findByAccountIdWithLock(@Param("accountId") String accountId);
 
-    List<Account> findByUserId(String userId);
+    Page<Account> findByUserId(String userId, Pageable pageable);
+
+    Optional<Account> findByUserId(String userId);
+
 
     Page<Account> findByStatus(AccountStatus status, Pageable pageable);
 

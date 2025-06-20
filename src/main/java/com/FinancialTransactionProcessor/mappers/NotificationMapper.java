@@ -5,6 +5,7 @@ import com.FinancialTransactionProcessor.dtos.CreateNotificationDTO;
 import com.FinancialTransactionProcessor.dtos.UpdateNotificationDTO;
 import com.FinancialTransactionProcessor.entities.Notification;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")

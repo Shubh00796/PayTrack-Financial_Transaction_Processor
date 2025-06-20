@@ -3,9 +3,13 @@ package com.FinancialTransactionProcessor.entities;
 import com.FinancialTransactionProcessor.enums.AccountStatus;
 import com.FinancialTransactionProcessor.enums.AccountType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "accounts_for_FTP", indexes = {
@@ -21,7 +25,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @ToString(callSuper = false)
-public class Account extends BaseEntity {
+public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,4 +69,14 @@ public class Account extends BaseEntity {
     @Column(name = "status", length = 20, nullable = false)
     @Builder.Default
     private AccountStatus status = AccountStatus.ACTIVE;
+
+    @PastOrPresent(message = "CreatedAt cannot be in the future")
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PastOrPresent(message = "UpdatedAt cannot be in the future")
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false, updatable = false)
+    private LocalDateTime updatedAt;
 }

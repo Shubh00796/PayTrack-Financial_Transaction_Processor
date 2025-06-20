@@ -5,6 +5,7 @@ import com.FinancialTransactionProcessor.dtos.CreateTransactionDTO;
 import com.FinancialTransactionProcessor.dtos.UpdateTransactionDTO;
 import com.FinancialTransactionProcessor.entities.Transaction;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")

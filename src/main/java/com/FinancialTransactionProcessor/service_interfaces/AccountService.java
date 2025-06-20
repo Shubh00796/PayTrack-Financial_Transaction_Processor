@@ -42,11 +42,6 @@ public interface AccountService {
 
     List<AccountResponseDTO> getAccountsByAccountType(AccountType accountType);
 
-    void transferFunds(String fromAccountId, String toAccountId, BigDecimal amount);
-
-    void depositFunds(String accountId, BigDecimal amount);
-
-    void withdrawFunds(String accountId, BigDecimal amount);
 
     void updateAccountStatus(String accountId, AccountStatus status);
 

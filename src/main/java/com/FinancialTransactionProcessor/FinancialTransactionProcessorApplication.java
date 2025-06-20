@@ -14,11 +14,8 @@ import java.util.Optional;
 @EnableJpaAuditing
 public class FinancialTransactionProcessorApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(FinancialTransactionProcessorApplication.class, args);
-	}
-	@Bean
-	public AuditorAware<String> auditorProvider() {
-		return () -> Optional.of("system"); // or pull from security context
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(FinancialTransactionProcessorApplication.class, args);
+    }
+
 }

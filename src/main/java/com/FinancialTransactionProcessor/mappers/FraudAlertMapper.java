@@ -5,6 +5,7 @@ import com.FinancialTransactionProcessor.dtos.CreateFraudAlertDTO;
 import com.FinancialTransactionProcessor.dtos.UpdateFraudAlertDTO;
 import com.FinancialTransactionProcessor.entities.FraudAlert;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")

@@ -4,7 +4,10 @@ import com.FinancialTransactionProcessor.enums.PaymentMethod;
 import com.FinancialTransactionProcessor.enums.TransactionStatus;
 import com.FinancialTransactionProcessor.enums.TransactionType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,7 +29,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @ToString(callSuper = false)
-public class Transaction extends BaseEntity {
+public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -84,6 +87,16 @@ public class Transaction extends BaseEntity {
 
     @Column(name = "failure_reason", columnDefinition = "TEXT")
     private String failureReason;
+
+    @PastOrPresent(message = "CreatedAt cannot be in the future")
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PastOrPresent(message = "UpdatedAt cannot be in the future")
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false, updatable = false)
+    private LocalDateTime updatedAt;
 
 
 }

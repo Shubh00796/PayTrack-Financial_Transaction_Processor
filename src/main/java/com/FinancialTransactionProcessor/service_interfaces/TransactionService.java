@@ -8,6 +8,7 @@ import com.FinancialTransactionProcessor.enums.TransactionType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -46,4 +47,12 @@ public interface TransactionService {
     void refundTransaction(String transactionId);
 
     void chargebackTransaction(String transactionId);
+
+
+    void transferFunds(String fromAccountId, String toAccountId, BigDecimal amount);
+
+    void depositFunds(String accountId, BigDecimal amount);
+
+    void withdrawFunds(String accountId, BigDecimal amount);
+
 }

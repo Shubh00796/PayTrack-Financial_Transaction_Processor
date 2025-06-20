@@ -12,10 +12,7 @@ import org.mapstruct.MappingTarget;
 public interface UserMapper {
 
 
-    @Mapping(source = "createdBy", target = "createdBy")
-    @Mapping(source = "updatedBy", target = "updatedBy")
-    @Mapping(source = "createdAt", target = "createdAt")
-    @Mapping(source = "updatedAt", target = "updatedAt")
+
     UserResponseDTO toDto(User user);
 
     User toEntity(CreateUserDTO createDto);
