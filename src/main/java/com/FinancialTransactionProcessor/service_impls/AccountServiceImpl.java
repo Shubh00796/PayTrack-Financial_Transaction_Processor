@@ -65,7 +65,7 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS, isolation = Isolation.READ_COMMITTED)
-    public Account getAccountById(String accountId) {
+    public AccountResponseDTO getAccountById(String accountId) {
         return mapper.toDto(getAccountOrThrow(accountId));
     }
 
@@ -254,7 +254,6 @@ public class AccountServiceImpl implements AccountService {
      * @param accountId   the account ID
      * @param accountType the new account type
      */
-    @Override
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
     public void updateAccountType(String accountId, AccountType accountType) {
         Objects.requireNonNull(accountType, "Account type cannot be null");
@@ -285,6 +284,35 @@ public class AccountServiceImpl implements AccountService {
     public boolean isAccountFrozen(String accountId) {
         return getAccountOrThrow(accountId).getStatus() == AccountStatus.FROZEN;
     }
+
+    @Override
+    @Transactional
+    public void debitBalance(String accountId, BigDecimal amount) {
+        validator.validateAmount(amount);
+        Account account = repoService.findByAccountIdWithLock(accountId);
+        validator.validateAccountStatus(account);
+
+        if (account.getAvailableBalance().compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient balance in account: " + accountId);
+        }
+
+        account.setBalance(account.getBalance().subtract(amount));
+        account.setAvailableBalance(account.getAvailableBalance().subtract(amount));
+        repoService.save(account);
+    }
+
+    @Override
+    @Transactional
+    public void creditBalance(String accountId, BigDecimal amount) {
+        validator.validateAmount(amount);
+        Account account = repoService.findByAccountIdWithLock(accountId);
+        validator.validateAccountStatus(account);
+
+        account.setBalance(account.getBalance().add(amount));
+        account.setAvailableBalance(account.getAvailableBalance().add(amount));
+        repoService.save(account);
+    }
+
 
     // Private helpers
     private Account getAccountOrThrow(String accountId) {

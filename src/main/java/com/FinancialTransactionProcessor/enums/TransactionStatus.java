@@ -5,6 +5,7 @@ public enum TransactionStatus {
     PROCESSING,
     COMPLETED,
     FAILED,
+    CHARGEBACKED,
     CANCELLED,
-    REVERSED
+    REFUNDED, REVERSED
 }
