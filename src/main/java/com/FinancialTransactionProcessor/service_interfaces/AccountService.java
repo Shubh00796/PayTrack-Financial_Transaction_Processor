@@ -3,6 +3,7 @@ package com.FinancialTransactionProcessor.service_interfaces;
 import com.FinancialTransactionProcessor.dtos.AccountResponseDTO;
 import com.FinancialTransactionProcessor.dtos.CreateAccountDTO;
 import com.FinancialTransactionProcessor.dtos.UpdateAccountDTO;
+import com.FinancialTransactionProcessor.entities.Account;
 import com.FinancialTransactionProcessor.enums.AccountStatus;
 import com.FinancialTransactionProcessor.enums.AccountType;
 import org.springframework.data.domain.Page;
@@ -14,7 +15,7 @@ import java.util.List;
 public interface AccountService {
     AccountResponseDTO createAccount(CreateAccountDTO requestDto);
 
-    AccountResponseDTO getAccountById(String accountId);
+    Account getAccountById(String accountId);
 
     Page<AccountResponseDTO> getAllAccounts(Pageable pageable);
 

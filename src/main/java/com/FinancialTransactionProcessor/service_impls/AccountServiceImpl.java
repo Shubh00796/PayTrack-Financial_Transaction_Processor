@@ -65,7 +65,7 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     @Transactional(readOnly = true, propagation = Propagation.SUPPORTS, isolation = Isolation.READ_COMMITTED)
-    public AccountResponseDTO getAccountById(String accountId) {
+    public Account getAccountById(String accountId) {
         return mapper.toDto(getAccountOrThrow(accountId));
     }
 
