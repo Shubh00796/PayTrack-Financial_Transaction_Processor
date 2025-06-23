@@ -1,7 +1,9 @@
 package com.FinancialTransactionProcessor.service_interfaces;
 
 import com.FinancialTransactionProcessor.dtos.TransactionResponseDTO;
+import com.FinancialTransactionProcessor.enums.PaymentMethod;
 import com.FinancialTransactionProcessor.enums.TransactionStatus;
+import com.FinancialTransactionProcessor.enums.TransactionType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -18,7 +20,7 @@ public interface TransactionQueryService {
 
     Page<TransactionResponseDTO> getTransactionsByAccount(String accountId, Pageable pageable);
 
-    List<TransactionResponseDTO> getTransactionsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
+    List<TransactionResponseDTO> getTransactionsByDateRange(TransactionType type, LocalDateTime startDate, LocalDateTime endDate);
 
-    List<TransactionResponseDTO> getTransactionsByPaymentMethod(String paymentMethod);
+    List<TransactionResponseDTO> getTransactionsByPaymentMethod(PaymentMethod paymentMethod);
 }
