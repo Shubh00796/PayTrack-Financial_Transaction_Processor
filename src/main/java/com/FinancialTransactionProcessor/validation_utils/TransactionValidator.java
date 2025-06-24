@@ -1,6 +1,5 @@
 package com.FinancialTransactionProcessor.validation_utils;
 
-import com.FinancialTransactionProcessor.dtos.AccountResponseDTO;
 import com.FinancialTransactionProcessor.dtos.CreateTransactionDTO;
 import com.FinancialTransactionProcessor.service_interfaces.AccountService;
 import jakarta.validation.ConstraintViolation;

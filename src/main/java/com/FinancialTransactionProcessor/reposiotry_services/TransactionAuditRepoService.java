@@ -35,6 +35,14 @@ public class TransactionAuditRepoService {
         return transactionAuditRepository.findByPreviousStatus(previousStatus);
     }
 
+    public Page<TransactionAudit> findByNewStatus(TransactionStatus status, Pageable pageable) {
+        return transactionAuditRepository.findByNewStatus(status, pageable);
+    }
+
+    public Page<TransactionAudit> findAllByTransactionId(String transactionId, Pageable pageable) {
+        return transactionAuditRepository.findAllByTransactionId(transactionId, pageable);
+    }
+
     public Page<TransactionAudit> findAll(Pageable pageable) {
         return transactionAuditRepository.findAll(pageable);
     }
@@ -44,6 +52,7 @@ public class TransactionAuditRepoService {
     }
 
     public void delete(TransactionAudit audit) {
+
         transactionAuditRepository.delete(audit);
     }
 
