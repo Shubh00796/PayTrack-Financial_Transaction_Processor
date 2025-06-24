@@ -3,7 +3,6 @@ package com.FinancialTransactionProcessor.configs;
 import com.FinancialTransactionProcessor.events.TransactionInitiatedEventHandler;
 import com.FinancialTransactionProcessor.events.TransactionInitiatedEventHandlerImpl;
 import com.FinancialTransactionProcessor.service_interfaces.TransactionService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
