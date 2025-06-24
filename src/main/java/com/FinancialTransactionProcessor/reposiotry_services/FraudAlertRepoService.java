@@ -27,8 +27,12 @@ public class FraudAlertRepoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Fraud alert with alert ID " + alertId + " not found"));
     }
 
-    public List<FraudAlert> findByStatus(AlertStatus status) {
-        return fraudAlertRepository.findByStatus(status);
+    public Page<FraudAlert> findByStatus(AlertStatus status, Pageable pageable) {
+        return fraudAlertRepository.findByStatus(status, pageable);
+    }
+
+    public Page<FraudAlert> findByTransactionId(String transactionId, Pageable pageable) {
+        return fraudAlertRepository.findByTransactionId(transactionId, pageable);
     }
 
     public List<FraudAlert> findByRuleId(String ruleId) {

@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface FraudAlertRepository extends JpaRepository<FraudAlert, Long> {
 
-    List<FraudAlert> findByStatus(AlertStatus status);
+    Page<FraudAlert> findByStatus(AlertStatus status, Pageable pageable);
 
     Page<FraudAlert> findAll(Pageable pageable);
 
@@ -24,5 +24,7 @@ public interface FraudAlertRepository extends JpaRepository<FraudAlert, Long> {
 
     @Query("SELECT f FROM FraudAlert f WHERE f.ruleId = :ruleId")
     List<FraudAlert> findByRuleId(@Param("ruleId") String ruleId);
-}
 
+    @Query("SELECT f FROM FraudAlert f WHERE f.transactionId = :transactionId")
+    Page<FraudAlert> findByTransactionId(@Param("transactionId") String transactionId, Pageable pageable);
+}
