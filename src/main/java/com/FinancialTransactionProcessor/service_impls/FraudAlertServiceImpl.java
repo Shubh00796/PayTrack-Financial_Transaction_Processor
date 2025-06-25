@@ -45,7 +45,6 @@ public class FraudAlertServiceImpl implements FraudAlertService {
     }
 
 
-
     @Override
     public FraudAlertResponseDTO getFraudAlertById(String alertId) {
         return mapper.toDto(getAlertOrThrow(alertId));
@@ -91,7 +90,7 @@ public class FraudAlertServiceImpl implements FraudAlertService {
     public void updateFraudAlertStatus(String alertId, AlertStatus status) {
         FraudAlert alert = getAlertOrThrow(alertId);
 
-        validateStastus(status, alert);
+        validateStatus(status, alert);
 
         alert.setStatus(status);
         alert.setUpdatedAt(LocalDateTime.now());
@@ -100,10 +99,14 @@ public class FraudAlertServiceImpl implements FraudAlertService {
         log.info("Updated fraud alert status to {} for ID: {}", status, alertId);
     }
 
-    private static void validateStastus(AlertStatus status, FraudAlert alert) {
-        if (alert.getStatus() == AlertStatus.RESOLVED && status != AlertStatus.RESOLVED) {
+    private static void validateStatus(AlertStatus status, FraudAlert alert) {
+        if (isResolvedAndNotRevertable(alert, status)) {
             throw new IllegalStateException("Cannot revert resolved alert to non-resolved status");
         }
+    }
+
+    private static boolean isResolvedAndNotRevertable(FraudAlert alert, AlertStatus status) {
+        return alert.getStatus() == AlertStatus.RESOLVED && status != AlertStatus.RESOLVED;
     }
 
     @Override
