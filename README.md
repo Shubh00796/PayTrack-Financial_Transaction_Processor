@@ -1,4 +1,4 @@
-# 💸 Financial Transaction Processor SaaS
+# 💸 PayTrack: SAAS based Financial Transaction Processor
 
 An **enterprise-grade financial transaction processing system** built for **high-frequency trading**, **digital payments**, and **real-time settlements**. Designed with precision, modularity, and performance in mind — this backend powerhouse leverages **Spring Boot**, **event-driven design**, and **clean architecture** to orchestrate secure and scalable financial operations.
 
