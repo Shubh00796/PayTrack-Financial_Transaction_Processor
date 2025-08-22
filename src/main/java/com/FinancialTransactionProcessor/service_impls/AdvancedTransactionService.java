@@ -6,7 +6,9 @@ import com.FinancialTransactionProcessor.enums.TransactionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -71,4 +73,28 @@ public class AdvancedTransactionService {
     }
 
 
+    public Map<TransactionType, BigDecimal> totalAmountByType() {
+        return transactions.stream()
+                .collect(Collectors.groupingBy(Transaction::getTransactionType,
+                        Collectors.mapping(Transaction::getAmount,
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));
+    }
+
+
+    public Map<Boolean, List<Transaction>> partitionBySuccess() {
+        return transactions.stream()
+                .collect(Collectors.partitioningBy(
+                        transaction -> transaction.getStatus() == TransactionStatus.COMPLETED));
+    }
+
+    public List<Transaction> getTopNTransactions(int n) {
+        return transactions.stream()
+                .sorted(Comparator.comparing(Transaction::getAmount).reversed())
+                .limit(n)
+                .collect(Collectors.toList());
+    }
+
+
+
 }
+
