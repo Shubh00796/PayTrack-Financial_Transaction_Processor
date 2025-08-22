@@ -6,7 +6,9 @@ import com.FinancialTransactionProcessor.enums.TransactionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -42,5 +44,31 @@ public class AdvancedTransactionService {
                 .filter(transaction -> accountId.equals(transaction.getToAccountId()))
                 .collect(Collectors.toList());
     }
+
+    public List<Transaction> findByStausAndAccount(String accountId, TransactionStatus status) {
+        return transactions.stream()
+                .filter(transaction -> accountId.equals(transaction.getToAccountId()) &&
+                        transaction.getStatus() == status)
+                .collect(Collectors.toList());
+    }
+
+    public List<Transaction> findByTypeAndDateRange(TransactionType type, LocalDateTime createdAt) {
+        return transactions.stream()
+                .filter(transaction -> transaction.getTransactionType() == type &&
+                        transaction.getCreatedAt() == createdAt
+                )
+                .collect(Collectors.toList());
+    }
+
+    public Map<TransactionType, List<Transaction>> groupByType(Transaction transaction) {
+        return transactions.stream()
+                .collect(Collectors.groupingBy(Transaction::getTransactionType));
+    }
+
+    public Map<String, Map<TransactionStatus, List<Transaction>>> groupByAccountAndStatus() {
+        return transactions.stream()
+                .collect(Collectors.groupingBy(Transaction::getFromAccountId, Collectors.groupingBy(Transaction::getStatus)));
+    }
+
 
 }
