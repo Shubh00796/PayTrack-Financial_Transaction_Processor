@@ -1,6 +1,8 @@
 package com.FinancialTransactionProcessor.service_impls;
 
 import com.FinancialTransactionProcessor.entities.Transaction;
+import com.FinancialTransactionProcessor.enums.TransactionStatus;
+import com.FinancialTransactionProcessor.enums.TransactionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,25 @@ public class AdvancedTransactionService {
         return transactions.stream()
                 .filter(transaction -> transactionId.equals(transaction.getTransactionId()))
                 .findFirst();
+    }
+
+    //2. Find By Status
+    public List<Transaction> findAllbyTrasnactionsStatus(TransactionStatus status) {
+        return transactions.stream()
+                .filter(transaction -> transaction.equals(status))
+                .collect(Collectors.toList());
+    }
+
+    public List<Transaction> findAllByType(TransactionType type) {
+        return transactions.stream()
+                .filter(transaction -> transaction.equals(type))
+                .collect(Collectors.toList());
+    }
+
+    public List<Transaction> findByAccount(String accountId) {
+        return transactions.stream()
+                .filter(transaction -> accountId.equals(transaction.getToAccountId()))
+                .collect(Collectors.toList());
     }
 
 }
