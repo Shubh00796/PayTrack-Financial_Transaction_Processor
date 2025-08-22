@@ -94,7 +94,21 @@ public class AdvancedTransactionService {
                 .collect(Collectors.toList());
     }
 
+    public List<Transaction> getAllByFailureReason(String failure) {
+        return transactions.stream()
+                .filter(transaction -> failure.equals(transaction.getFailureReason()))
+                .collect(Collectors.toList());
+    }
 
+
+    public Map<String, Map<String, List<Transaction>>> getByFailureReasonAndTransId() {
+        return transactions.stream()
+                .filter(tx -> tx.getFailureReason() != null) // Optional: filter only failed transactions
+                .collect(Collectors.groupingBy(
+                        Transaction::getFailureReason,
+                        Collectors.groupingBy(Transaction::getTransactionId)
+                ));
+    }
 
 }
 
