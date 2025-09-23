@@ -83,7 +83,7 @@ public class FraudAlertServiceImpl implements FraudAlertService {
     public void deleteFraudAlert(String alertId) {
         FraudAlert alert = getAlertOrThrow(alertId);
         repoService.delete(alert);
-        log.info("Deleted fraud alert with ID: {}", alertId);
+        log.info("Deleted fraud alert with ID with %%%%: {}", alertId);
     }
 
     @Override
