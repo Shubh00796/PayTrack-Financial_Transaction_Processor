@@ -37,8 +37,7 @@ public class TransactionAuditServiceImpl implements TransactionAuditService {
         TransactionResponseDTO transaction = validateTransactionId(dto);
 
         TransactionAudit audit = mapper.toEntity(dto);
-        audit.setPreviousStatus(transaction.getStatus());
-        audit.setNewStatus(dto.getNewStatus());
+        validateAudit(dto, audit, transaction);
 
         TransactionAudit savedAudit = repoService.save(audit);
         log.info("Created transaction audit for transactionId: {}", dto.getTransactionId());
@@ -46,6 +45,10 @@ public class TransactionAuditServiceImpl implements TransactionAuditService {
         return mapper.toDto(savedAudit);
     }
 
+    private static void validateAudit(CreateTransactionAuditDTO dto, TransactionAudit audit, TransactionResponseDTO transaction) {
+        audit.setPreviousStatus(transaction.getStatus());
+        audit.setNewStatus(dto.getNewStatus());
+    }
 
 
     @Override
