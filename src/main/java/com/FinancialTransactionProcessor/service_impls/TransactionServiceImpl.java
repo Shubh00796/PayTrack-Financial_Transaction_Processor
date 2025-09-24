@@ -5,7 +5,6 @@ import com.FinancialTransactionProcessor.dtos.TransactionResponseDTO;
 import com.FinancialTransactionProcessor.entities.Transaction;
 import com.FinancialTransactionProcessor.enums.TransactionStatus;
 import com.FinancialTransactionProcessor.enums.TransactionType;
-import com.FinancialTransactionProcessor.events.EventPublisher;
 import com.FinancialTransactionProcessor.events.TransactionInitiatedEvent;
 import com.FinancialTransactionProcessor.exceptions_handling.InsufficientBalanceException;
 import com.FinancialTransactionProcessor.exceptions_handling.ResourceNotFoundException;
@@ -15,6 +14,8 @@ import com.FinancialTransactionProcessor.service_interfaces.AccountService;
 import com.FinancialTransactionProcessor.service_interfaces.TransactionService;
 import com.FinancialTransactionProcessor.validation_utils.TransactionValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -24,158 +25,104 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepoService repoService;
     private final TransactionMapper mapper;
     private final AccountService accountService;
-    private final EventPublisher eventPublisher;
-    private final TransactionValidator transactionValidator;
+    private final ApplicationEventPublisher eventPublisher;
+    private final TransactionValidator validator;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
-    public TransactionResponseDTO initiateTransaction(CreateTransactionDTO createTransactionDTO) {
-        transactionValidator.validateCreateRequest(createTransactionDTO);
+    public TransactionResponseDTO initiateTransaction(CreateTransactionDTO dto) {
+        validator.validateCreateRequest(dto);
 
-        Transaction transaction = mapper.toEntity(createTransactionDTO);
+        Transaction transaction = mapper.toEntity(dto);
         transaction.setTransactionId(UUID.randomUUID().toString());
         transaction.setStatus(TransactionStatus.PENDING);
 
-        Transaction savedTransaction = repoService.save(transaction);
-        TransactionResponseDTO responseDTO = mapper.toDto(savedTransaction);
+        Transaction saved = repoService.save(transaction);
+        eventPublisher.publishEvent(new TransactionInitiatedEvent(this, dto));
 
-        eventPublisher.publish(new TransactionInitiatedEvent(this, createTransactionDTO));
-
-        return responseDTO;
+        return mapper.toDto(saved);
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE)
     public void processTransaction(String transactionId) {
-        Transaction transaction = getTransactionById(transactionId);
-        validateTransaction(transactionId, transaction);
-
-        validateTransactionStatus(transaction, TransactionStatus.PENDING, "Only pending transactions can be processed.");
+        Transaction transaction = getValidatedTransaction(transactionId, TransactionStatus.PENDING,
+                "Only pending transactions can be processed.");
 
         transferFunds(transaction.getFromAccountId(), transaction.getToAccountId(), transaction.getAmount());
 
-        transaction.setStatus(TransactionStatus.COMPLETED);
-        transaction.setProcessedAt(LocalDateTime.now());
-        transaction.setCompletedAt(LocalDateTime.now());
-
-        repoService.save(transaction);
+        updateTransactionStatusAndTimestamp(transaction, TransactionStatus.COMPLETED);
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.SERIALIZABLE)
     public void transferFunds(String fromAccountId, String toAccountId, BigDecimal amount) {
-        validateUserHasSufficientBalance(fromAccountId, amount);
-
+        validateSufficientBalance(fromAccountId, amount);
         accountService.debitBalance(fromAccountId, amount);
         accountService.creditBalance(toAccountId, amount);
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional
     public void cancelTransaction(String transactionId) {
-        Transaction transaction = getTransactionById(transactionId);
-        validateTransaction(transactionId, transaction);
+        Transaction transaction = getValidatedTransaction(transactionId, TransactionStatus.PENDING,
+                "Only pending transactions can be cancelled.");
 
-        validateTransactionStatus(transaction, TransactionStatus.PENDING, "Only pending transactions can be cancelled.");
-
-        transaction.setStatus(TransactionStatus.CANCELLED);
-        transaction.setCompletedAt(LocalDateTime.now());
-
-        repoService.save(transaction);
+        updateTransactionStatusAndTimestamp(transaction, TransactionStatus.CANCELLED);
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional
     public void reverseTransaction(String transactionId) {
-        Transaction transaction = getTransactionById(transactionId);
-        validateTransaction(transactionId, transaction);
-
-        validateTransactionStatus(transaction, TransactionStatus.COMPLETED, "Only completed transactions can be reversed.");
+        Transaction transaction = getValidatedTransaction(transactionId, TransactionStatus.COMPLETED,
+                "Only completed transactions can be reversed.");
 
         transferFunds(transaction.getToAccountId(), transaction.getFromAccountId(), transaction.getAmount());
-
-        transaction.setStatus(TransactionStatus.REVERSED);
-        transaction.setCompletedAt(LocalDateTime.now());
-
-        repoService.save(transaction);
-
-
-    }
-
-    @Override
-    @Transactional
-    public void updateTransactionStatus(String transactionId, TransactionStatus status) {
-        Transaction transaction = getTransactionById(transactionId);
-        validateTransaction(transactionId, transaction);
-
-        transaction.setStatus(status);
-        repoService.save(transaction);
-    }
-
-    private static void validateTransaction(String transactionId, Transaction transaction) {
-        if (transaction == null) {
-            throw new ResourceNotFoundException("Transaction not found: " + transactionId);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void updateTransactionType(String transactionId, TransactionType type) {
-        Transaction transaction = getTransactionById(transactionId);
-        validateTransaction(transactionId, transaction);
-
-        transaction.setTransactionType(type);
-        repoService.save(transaction);
+        updateTransactionStatusAndTimestamp(transaction, TransactionStatus.REVERSED);
     }
 
     @Override
     @Transactional
     public void refundTransaction(String transactionId) {
-        Transaction transaction = getTransactionById(transactionId);
-        validateTransaction(transactionId, transaction);
-
-        validateTransactionStatus(transaction, TransactionStatus.COMPLETED, "Only completed transactions can be refunded.");
+        Transaction transaction = getValidatedTransaction(transactionId, TransactionStatus.COMPLETED,
+                "Only completed transactions can be refunded.");
 
         transferFunds(transaction.getToAccountId(), transaction.getFromAccountId(), transaction.getAmount());
-
-        transaction.setStatus(TransactionStatus.REFUNDED);
-        transaction.setCompletedAt(LocalDateTime.now());
-
-        repoService.save(transaction);
-    }
-
-    private Transaction getTransactionById(String transactionId) {
-        Transaction transaction = repoService.findByTransactionId(transactionId);
-        return transaction;
+        updateTransactionStatusAndTimestamp(transaction, TransactionStatus.REFUNDED);
     }
 
     @Override
     @Transactional
     public void chargebackTransaction(String transactionId) {
-        Transaction transaction = getTransactionById(transactionId);
-        validateTransaction(transactionId, transaction);
-
-        validateTransactionStatus(transaction, TransactionStatus.COMPLETED, "Only completed transactions can be chargebacked.");
+        Transaction transaction = getValidatedTransaction(transactionId, TransactionStatus.COMPLETED,
+                "Only completed transactions can be chargebacked.");
 
         transferFunds(transaction.getToAccountId(), transaction.getFromAccountId(), transaction.getAmount());
+        updateTransactionStatusAndTimestamp(transaction, TransactionStatus.CHARGEBACKED);
+    }
 
-        transaction.setStatus(TransactionStatus.CHARGEBACKED);
-        transaction.setCompletedAt(LocalDateTime.now());
-
+    @Override
+    @Transactional
+    public void updateTransactionStatus(String transactionId, TransactionStatus status) {
+        Transaction transaction = getTransactionOrThrow(transactionId);
+        transaction.setStatus(status);
         repoService.save(transaction);
     }
 
-    private static void validateTransactionStatus(Transaction transaction, TransactionStatus completed, String s) {
-        if (transaction.getStatus() != completed) {
-            throw new IllegalStateException(s);
-        }
+    @Override
+    @Transactional
+    public void updateTransactionType(String transactionId, TransactionType type) {
+        Transaction transaction = getTransactionOrThrow(transactionId);
+        transaction.setTransactionType(type);
+        repoService.save(transaction);
     }
 
     @Override
@@ -187,12 +134,37 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public void withdrawFunds(String accountId, BigDecimal amount) {
-        validateUserHasSufficientBalance(accountId, amount);
-
+        validateSufficientBalance(accountId, amount);
         accountService.debitBalance(accountId, amount);
     }
 
-    private void validateUserHasSufficientBalance(String accountId, BigDecimal amount) {
+    // 🔒 Private helper methods
+    private Transaction getTransactionOrThrow(String transactionId) {
+        Transaction transaction = repoService.findByTransactionId(transactionId);
+        if (transaction == null) {
+            throw new ResourceNotFoundException("Transaction not found: " + transactionId);
+        }
+        return transaction;
+    }
+
+    private Transaction getValidatedTransaction(String transactionId, TransactionStatus expectedStatus, String errorMessage) {
+        Transaction transaction = getTransactionOrThrow(transactionId);
+        if (transaction.getStatus() != expectedStatus) {
+            throw new IllegalStateException(errorMessage);
+        }
+        return transaction;
+    }
+
+    private void updateTransactionStatusAndTimestamp(Transaction transaction, TransactionStatus status) {
+        transaction.setStatus(status);
+        transaction.setCompletedAt(LocalDateTime.now());
+        if (status == TransactionStatus.COMPLETED) {
+            transaction.setProcessedAt(LocalDateTime.now());
+        }
+        repoService.save(transaction);
+    }
+
+    private void validateSufficientBalance(String accountId, BigDecimal amount) {
         if (!accountService.hasSufficientBalance(accountId, amount)) {
             throw new InsufficientBalanceException("Insufficient balance in account: " + accountId);
         }
