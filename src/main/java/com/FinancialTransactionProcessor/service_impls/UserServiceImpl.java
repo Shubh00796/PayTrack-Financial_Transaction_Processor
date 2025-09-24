@@ -5,6 +5,7 @@ import com.FinancialTransactionProcessor.dtos.UpdateUserDTO;
 import com.FinancialTransactionProcessor.dtos.UserResponseDTO;
 import com.FinancialTransactionProcessor.entities.User;
 import com.FinancialTransactionProcessor.enums.UserStatus;
+import com.FinancialTransactionProcessor.exceptions_handling.ResourceNotFoundException;
 import com.FinancialTransactionProcessor.mappers.UserMapper;
 import com.FinancialTransactionProcessor.reposiotry_services.UserRepoService;
 import com.FinancialTransactionProcessor.service_interfaces.UserService;
@@ -27,69 +28,48 @@ public class UserServiceImpl implements UserService {
     private final UserRepoService repoService;
     private final UserMapper mapper;
 
-    /**
-     * Creates a new user.
-     */
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    public UserResponseDTO createUser(CreateUserDTO createUserDTO) {
-        User user = mapper.toEntity(createUserDTO);
-        user.setUserId(createUserDTO.getUserId());
+    public UserResponseDTO createUser(CreateUserDTO dto) {
+        User user = mapper.toEntity(dto);
+        user.setUserId(dto.getUserId());
         user.setCreatedAt(LocalDateTime.now());
         return mapper.toDto(repoService.save(user));
     }
 
-    /**
-     * Retrieves a user by ID.
-     */
     @Override
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public UserResponseDTO getUserById(String userId) {
         return mapper.toDto(getUserOrThrow(userId));
     }
 
-    /**
-     * Retrieves all users with pagination.
-     */
     @Override
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public Page<UserResponseDTO> getAllUsers(Pageable pageable) {
         return repoService.findAll(pageable).map(mapper::toDto);
     }
 
-    /**
-     * Retrieves users by status with pagination.
-     */
     @Override
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public Page<UserResponseDTO> getUsersByStatus(UserStatus status, Pageable pageable) {
         return repoService.findByStatus(status, pageable).map(mapper::toDto);
     }
 
-    /**
-     * Updates user details.
-     */
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    public UserResponseDTO updateUser(String userId, UpdateUserDTO updateUserDTO) {
+    public UserResponseDTO updateUser(String userId, UpdateUserDTO dto) {
         User user = getUserOrThrow(userId);
-        mapper.updateEntity(user, updateUserDTO);
+        mapper.updateEntity(user, dto);
         user.setUpdatedAt(LocalDateTime.now());
         return mapper.toDto(repoService.update(user));
     }
 
-    /**
-     * Deletes a user by ID.
-     */
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void deleteUser(String userId) {
         repoService.deleteById(userId);
     }
 
-    /**
-     * Updates the status of a user.
-     */
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void updateUserStatus(String userId, UserStatus status) {
@@ -99,55 +79,48 @@ public class UserServiceImpl implements UserService {
         repoService.update(user);
     }
 
-    /**
-     * Checks if a user is active.
-     */
     @Override
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public boolean isUserActive(String userId) {
-        return UserStatus.ACTIVE.equals(getUserOrThrow(userId).getStatus());
+        return isUserStatus(userId, UserStatus.ACTIVE);
     }
 
-    /**
-     * Checks if a user is locked.
-     */
     @Override
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public boolean isUserLocked(String userId) {
-        return UserStatus.LOCKED.equals(getUserOrThrow(userId).getStatus());
+        return isUserStatus(userId, UserStatus.LOCKED);
     }
 
-    /**
-     * Locks a user.
-     */
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void lockUser(String userId) {
         updateUserStatus(userId, UserStatus.LOCKED);
     }
 
-    /**
-     * Unlocks a user.
-     */
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void unlockUser(String userId) {
         updateUserStatus(userId, UserStatus.ACTIVE);
     }
 
-    /**
-     * Retrieves a user by phone number.
-     */
     @Override
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public Optional<UserResponseDTO> getUserByPhoneNumber(String phoneNumber) {
-        return Optional.ofNullable(mapper.toDto(repoService.getByPhoneNumber(phoneNumber)));
+        return Optional.ofNullable(repoService.getByPhoneNumber(phoneNumber))
+                .map(mapper::toDto);
     }
 
-    /**
-     * Helper method to fetch user or throw exception.
-     */
+    // 🔒 Private helper methods
+
     private User getUserOrThrow(String userId) {
-        return repoService.findByUserId(userId);
+        User user = repoService.findByUserId(userId);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found: " + userId);
+        }
+        return user;
+    }
+
+    private boolean isUserStatus(String userId, UserStatus expectedStatus) {
+        return expectedStatus.equals(getUserOrThrow(userId).getStatus());
     }
 }
