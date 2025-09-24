@@ -8,10 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,73 +17,82 @@ public class AdvancedTransactionService {
 
     private final List<Transaction> transactions;
 
-
-    // 1. Find by transaction ID
+    // 🔍 Find by transaction ID
     public Optional<Transaction> findByTransactionId(String transactionId) {
         return transactions.stream()
-                .filter(transaction -> transactionId.equals(transaction.getTransactionId()))
+                .filter(tx -> transactionId.equals(tx.getTransactionId()))
                 .findFirst();
     }
 
-    //2. Find By Status
-    public List<Transaction> findAllbyTrasnactionsStatus(TransactionStatus status) {
+    // 🔍 Find by status
+    public List<Transaction> findAllByStatus(TransactionStatus status) {
         return transactions.stream()
-                .filter(transaction -> transaction.equals(status))
+                .filter(tx -> tx.getStatus() == status)
                 .collect(Collectors.toList());
     }
 
+    // 🔍 Find by type
     public List<Transaction> findAllByType(TransactionType type) {
         return transactions.stream()
-                .filter(transaction -> transaction.equals(type))
+                .filter(tx -> tx.getTransactionType() == type)
                 .collect(Collectors.toList());
     }
 
+    // 🔍 Find by account
     public List<Transaction> findByAccount(String accountId) {
         return transactions.stream()
-                .filter(transaction -> accountId.equals(transaction.getToAccountId()))
+                .filter(tx -> accountId.equals(tx.getToAccountId()))
                 .collect(Collectors.toList());
     }
 
-    public List<Transaction> findByStausAndAccount(String accountId, TransactionStatus status) {
+    // 🔍 Find by status and account
+    public List<Transaction> findByStatusAndAccount(String accountId, TransactionStatus status) {
         return transactions.stream()
-                .filter(transaction -> accountId.equals(transaction.getToAccountId()) &&
-                        transaction.getStatus() == status)
+                .filter(tx -> accountId.equals(tx.getToAccountId()) && tx.getStatus() == status)
                 .collect(Collectors.toList());
     }
 
-    public List<Transaction> findByTypeAndDateRange(TransactionType type, LocalDateTime createdAt) {
+    // 🔍 Find by type and exact date
+    public List<Transaction> findByTypeAndDate(TransactionType type, LocalDateTime date) {
         return transactions.stream()
-                .filter(transaction -> transaction.getTransactionType() == type &&
-                        transaction.getCreatedAt() == createdAt
-                )
+                .filter(tx -> tx.getTransactionType() == type && tx.getCreatedAt().equals(date))
                 .collect(Collectors.toList());
     }
 
-    public Map<TransactionType, List<Transaction>> groupByType(Transaction transaction) {
+    // 📊 Group by type
+    public Map<TransactionType, List<Transaction>> groupByType() {
         return transactions.stream()
                 .collect(Collectors.groupingBy(Transaction::getTransactionType));
     }
 
+    // 📊 Group by account and status
     public Map<String, Map<TransactionStatus, List<Transaction>>> groupByAccountAndStatus() {
         return transactions.stream()
-                .collect(Collectors.groupingBy(Transaction::getFromAccountId, Collectors.groupingBy(Transaction::getStatus)));
+                .collect(Collectors.groupingBy(
+                        Transaction::getFromAccountId,
+                        Collectors.groupingBy(Transaction::getStatus)
+                ));
     }
 
-
+    // 💰 Total amount by type
     public Map<TransactionType, BigDecimal> totalAmountByType() {
         return transactions.stream()
-                .collect(Collectors.groupingBy(Transaction::getTransactionType,
+                .collect(Collectors.groupingBy(
+                        Transaction::getTransactionType,
                         Collectors.mapping(Transaction::getAmount,
-                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
+                ));
     }
 
-
+    // ✅ Partition by success
     public Map<Boolean, List<Transaction>> partitionBySuccess() {
         return transactions.stream()
                 .collect(Collectors.partitioningBy(
-                        transaction -> transaction.getStatus() == TransactionStatus.COMPLETED));
+                        tx -> tx.getStatus() == TransactionStatus.COMPLETED
+                ));
     }
 
+    // 🔝 Top N transactions by amount
     public List<Transaction> getTopNTransactions(int n) {
         return transactions.stream()
                 .sorted(Comparator.comparing(Transaction::getAmount).reversed())
@@ -94,21 +100,20 @@ public class AdvancedTransactionService {
                 .collect(Collectors.toList());
     }
 
-    public List<Transaction> getAllByFailureReason(String failure) {
+    // ❌ Find all by failure reason
+    public List<Transaction> getAllByFailureReason(String reason) {
         return transactions.stream()
-                .filter(transaction -> failure.equals(transaction.getFailureReason()))
+                .filter(tx -> reason.equals(tx.getFailureReason()))
                 .collect(Collectors.toList());
     }
 
-
-    public Map<String, Map<String, List<Transaction>>> getByFailureReasonAndTransId() {
+    // 📊 Group by failure reason and transaction ID
+    public Map<String, Map<String, List<Transaction>>> groupByFailureReasonAndTransactionId() {
         return transactions.stream()
-                .filter(tx -> tx.getFailureReason() != null) // Optional: filter only failed transactions
+                .filter(tx -> tx.getFailureReason() != null)
                 .collect(Collectors.groupingBy(
                         Transaction::getFailureReason,
                         Collectors.groupingBy(Transaction::getTransactionId)
                 ));
     }
-
 }
-
