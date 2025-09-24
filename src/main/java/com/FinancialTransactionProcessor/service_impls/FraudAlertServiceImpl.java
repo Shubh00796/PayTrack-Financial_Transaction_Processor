@@ -5,6 +5,7 @@ import com.FinancialTransactionProcessor.dtos.FraudAlertResponseDTO;
 import com.FinancialTransactionProcessor.dtos.UpdateFraudAlertDTO;
 import com.FinancialTransactionProcessor.entities.FraudAlert;
 import com.FinancialTransactionProcessor.enums.AlertStatus;
+import com.FinancialTransactionProcessor.exceptions_handling.ResourceNotFoundException;
 import com.FinancialTransactionProcessor.mappers.FraudAlertMapper;
 import com.FinancialTransactionProcessor.reposiotry_services.FraudAlertRepoService;
 import com.FinancialTransactionProcessor.service_interfaces.FraudAlertService;
@@ -30,17 +31,13 @@ public class FraudAlertServiceImpl implements FraudAlertService {
     @Override
     public FraudAlertResponseDTO createFraudAlert(CreateFraudAlertDTO dto) {
         validator.validateCreateRequest(dto);
-
-        validateDuplicasy(dto);
+        validateDuplicateAlert(dto);
 
         FraudAlert alert = mapper.toEntity(dto);
         alert.setAlertId(UUID.randomUUID().toString());
         alert.setStatus(AlertStatus.INVESTIGATING);
 
-
         FraudAlert saved = repoService.save(alert);
-        log.info("Created fraud alert for transactionId: {}", dto.getTransactionId());
-
         return mapper.toDto(saved);
     }
 
@@ -83,14 +80,13 @@ public class FraudAlertServiceImpl implements FraudAlertService {
     public void deleteFraudAlert(String alertId) {
         FraudAlert alert = getAlertOrThrow(alertId);
         repoService.delete(alert);
-        log.info("Deleted fraud alert with ID with %%%%: {}", alertId);
+        log.info("Deleted fraud alert with ID: {}", alertId);
     }
 
     @Override
     public void updateFraudAlertStatus(String alertId, AlertStatus status) {
         FraudAlert alert = getAlertOrThrow(alertId);
-
-        validateStatus(status, alert);
+        validateStatusTransition(alert, status);
 
         alert.setStatus(status);
         alert.setUpdatedAt(LocalDateTime.now());
@@ -99,36 +95,41 @@ public class FraudAlertServiceImpl implements FraudAlertService {
         log.info("Updated fraud alert status to {} for ID: {}", status, alertId);
     }
 
-    private static void validateStatus(AlertStatus status, FraudAlert alert) {
-        if (isResolvedAndNotRevertable(alert, status)) {
-            throw new IllegalStateException("Cannot revert resolved alert to non-resolved status");
-        }
-    }
-
-    private static boolean isResolvedAndNotRevertable(FraudAlert alert, AlertStatus status) {
-        return alert.getStatus() == AlertStatus.RESOLVED && status != AlertStatus.RESOLVED;
-    }
-
     @Override
     public boolean isFraudAlertPending(String alertId) {
-        return getAlertOrThrow(alertId).getStatus() == AlertStatus.OPEN;
+        return isAlertStatus(alertId, AlertStatus.OPEN);
     }
 
     @Override
     public boolean isFraudAlertResolved(String alertId) {
-        return getAlertOrThrow(alertId).getStatus() == AlertStatus.RESOLVED;
+        return isAlertStatus(alertId, AlertStatus.RESOLVED);
     }
 
-    // 🔒 Private helper method
+    // 🔒 Private helper methods
+
     private FraudAlert getAlertOrThrow(String alertId) {
-        return repoService.findByAlertId(alertId);
+        FraudAlert alert = repoService.findByAlertId(alertId);
+        if (alert == null) {
+            throw new ResourceNotFoundException("Fraud alert not found for ID: " + alertId);
+        }
+        return alert;
     }
 
-    private void validateDuplicasy(CreateFraudAlertDTO dto) {
-        // Prevent duplicate alerts for same transaction and rule
-        if (repoService.findByRuleId(dto.getRuleId()).stream()
-                .anyMatch(alert -> alert.getTransactionId().equals(dto.getTransactionId()))) {
+    private void validateDuplicateAlert(CreateFraudAlertDTO dto) {
+        boolean isDuplicate = repoService.findByRuleId(dto.getRuleId()).stream()
+                .anyMatch(alert -> alert.getTransactionId().equals(dto.getTransactionId()));
+        if (isDuplicate) {
             throw new IllegalArgumentException("Duplicate fraud alert for transaction and rule");
         }
+    }
+
+    private void validateStatusTransition(FraudAlert alert, AlertStatus newStatus) {
+        if (alert.getStatus() == AlertStatus.RESOLVED && newStatus != AlertStatus.RESOLVED) {
+            throw new IllegalStateException("Cannot revert resolved alert to non-resolved status");
+        }
+    }
+
+    private boolean isAlertStatus(String alertId, AlertStatus expectedStatus) {
+        return expectedStatus.equals(getAlertOrThrow(alertId).getStatus());
     }
 }
