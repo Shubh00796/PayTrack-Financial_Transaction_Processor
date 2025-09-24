@@ -1,9 +1,6 @@
 package com.FinancialTransactionProcessor.service_impls;
 
-import com.FinancialTransactionProcessor.dtos.CreateTransactionAuditDTO;
-import com.FinancialTransactionProcessor.dtos.TransactionAuditResponseDTO;
-import com.FinancialTransactionProcessor.dtos.TransactionResponseDTO;
-import com.FinancialTransactionProcessor.dtos.UpdateTransactionAuditDTO;
+import com.FinancialTransactionProcessor.dtos.*;
 import com.FinancialTransactionProcessor.entities.TransactionAudit;
 import com.FinancialTransactionProcessor.enums.TransactionStatus;
 import com.FinancialTransactionProcessor.exceptions_handling.ResourceNotFoundException;
@@ -34,10 +31,8 @@ public class TransactionAuditServiceImpl implements TransactionAuditService {
     public TransactionAuditResponseDTO createTransactionAudit(CreateTransactionAuditDTO dto) {
         validator.validateCreateRequest(dto);
 
-        TransactionResponseDTO transaction = validateTransactionId(dto);
-
-        TransactionAudit audit = mapper.toEntity(dto);
-        validateAudit(dto, audit, transaction);
+        TransactionResponseDTO transaction = getValidatedTransaction(dto.getTransactionId());
+        TransactionAudit audit = prepareAuditEntity(dto, transaction);
 
         TransactionAudit savedAudit = repoService.save(audit);
         log.info("Created transaction audit for transactionId: {}", dto.getTransactionId());
@@ -45,23 +40,15 @@ public class TransactionAuditServiceImpl implements TransactionAuditService {
         return mapper.toDto(savedAudit);
     }
 
-    private static void validateAudit(CreateTransactionAuditDTO dto, TransactionAudit audit, TransactionResponseDTO transaction) {
-        audit.setPreviousStatus(transaction.getStatus());
-        audit.setNewStatus(dto.getNewStatus());
-    }
-
-
     @Override
-    public TransactionAuditResponseDTO getTransactionAuditById(String transactionAuditId) {
-        TransactionAudit audit = getAuditOrThrow(transactionAuditId);
-        return mapper.toDto(audit);
+    public TransactionAuditResponseDTO getTransactionAuditById(String auditId) {
+        return mapper.toDto(getAuditOrThrow(auditId));
     }
 
     @Override
     public Page<TransactionAuditResponseDTO> getAllTransactionAudits(Pageable pageable) {
         return repoService.findAll(pageable).map(mapper::toDto);
     }
-
 
     @Override
     public Page<TransactionAuditResponseDTO> getTransactionAuditsByStatus(TransactionStatus status, Pageable pageable) {
@@ -74,54 +61,59 @@ public class TransactionAuditServiceImpl implements TransactionAuditService {
     }
 
     @Override
-    public TransactionAuditResponseDTO updateTransactionAudit(String transactionAuditId, UpdateTransactionAuditDTO dto) {
+    public TransactionAuditResponseDTO updateTransactionAudit(String auditId, UpdateTransactionAuditDTO dto) {
         validator.validateUpdateRequest(dto);
 
-        TransactionAudit audit = getAuditOrThrow(transactionAuditId);
+        TransactionAudit audit = getAuditOrThrow(auditId);
         mapper.updateEntity(audit, dto);
 
-        TransactionAudit updated = repoService.save(audit);
-        log.info("Updated transaction audit with ID: {}", transactionAuditId);
+        TransactionAudit updatedAudit = repoService.save(audit);
+        log.info("Updated transaction audit with ID: {}", auditId);
 
-        return mapper.toDto(updated);
+        return mapper.toDto(updatedAudit);
     }
 
-
     @Override
-    public void deleteTransactionAudit(String transactionAuditId) {
-        TransactionAudit audit = getAuditOrThrow(transactionAuditId);
+    public void deleteTransactionAudit(String auditId) {
+        TransactionAudit audit = getAuditOrThrow(auditId);
         repoService.delete(audit);
-        log.info("Deleted transaction audit with ID: {}", transactionAuditId);
+        log.info("Deleted transaction audit with ID: {}", auditId);
     }
 
     @Override
-    public void updateTransactionAuditStatus(String transactionAuditId, TransactionStatus status) {
-        TransactionAudit audit = getAuditOrThrow(transactionAuditId);
+    public void updateTransactionAuditStatus(String auditId, TransactionStatus status) {
+        TransactionAudit audit = getAuditOrThrow(auditId);
         audit.setNewStatus(status);
         repoService.save(audit);
-        log.info("Updated status of transaction audit ID: {} to {}", transactionAuditId, status);
+        log.info("Updated status of transaction audit ID: {} to {}", auditId, status);
     }
 
     @Override
-    public boolean isTransactionAuditPending(String transactionAuditId) {
-        return getAuditOrThrow(transactionAuditId).getNewStatus() == TransactionStatus.PENDING;
+    public boolean isTransactionAuditPending(String auditId) {
+        return getAuditOrThrow(auditId).getNewStatus() == TransactionStatus.PENDING;
     }
 
     @Override
-    public boolean isTransactionAuditCompleted(String transactionAuditId) {
-        return getAuditOrThrow(transactionAuditId).getNewStatus() == TransactionStatus.COMPLETED;
+    public boolean isTransactionAuditCompleted(String auditId) {
+        return getAuditOrThrow(auditId).getNewStatus() == TransactionStatus.COMPLETED;
     }
 
-    // 🔒 Private helper method to reduce duplication
-    private TransactionAudit getAuditOrThrow(String transactionAuditId) {
-        return Optional.ofNullable(repoService.findByTransactionId(transactionAuditId))
-                .orElseThrow(() -> new ResourceNotFoundException("Transaction audit not found for ID: " + transactionAuditId));
+    // 🔒 Private helper methods
+
+    private TransactionAudit getAuditOrThrow(String auditId) {
+        return Optional.ofNullable(repoService.findByTransactionId(auditId))
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction audit not found for ID: " + auditId));
     }
 
-    private TransactionResponseDTO validateTransactionId(CreateTransactionAuditDTO dto) {
-        TransactionResponseDTO transaction = Optional.ofNullable(
-                        transactionService.getTransactionById(dto.getTransactionId()))
-                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found for ID: " + dto.getTransactionId()));
-        return transaction;
+    private TransactionResponseDTO getValidatedTransaction(String transactionId) {
+        return Optional.ofNullable(transactionService.getTransactionById(transactionId))
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found for ID: " + transactionId));
+    }
+
+    private TransactionAudit prepareAuditEntity(CreateTransactionAuditDTO dto, TransactionResponseDTO transaction) {
+        TransactionAudit audit = mapper.toEntity(dto);
+        audit.setPreviousStatus(transaction.getStatus());
+        audit.setNewStatus(dto.getNewStatus());
+        return audit;
     }
 }
