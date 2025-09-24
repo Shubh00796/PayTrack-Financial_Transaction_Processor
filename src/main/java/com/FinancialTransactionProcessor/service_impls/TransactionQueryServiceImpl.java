@@ -17,20 +17,23 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class TransactionQueryServiceImpl implements TransactionQueryService {
+
     private final TransactionRepoService repoService;
     private final TransactionMapper mapper;
-    private final TransactionValidator transactionValidator;
+    private final TransactionValidator validator;
 
     @Override
     public TransactionResponseDTO getTransactionById(String transactionId) {
-        Transaction transaction = repoService.findByTransactionId(transactionId);
-        return mapper.toDto(transaction);
+        return Optional.ofNullable(repoService.findByTransactionId(transactionId))
+                .map(mapper::toDto)
+                .orElse(null); // Consider throwing a ResourceNotFoundException if needed
     }
 
     @Override
@@ -53,16 +56,17 @@ public class TransactionQueryServiceImpl implements TransactionQueryService {
 
     @Override
     public List<TransactionResponseDTO> getTransactionsByDateRange(TransactionType type, LocalDateTime startDate, LocalDateTime endDate) {
-        return repoService.findByTypeAndDateRange(type, startDate, endDate)
-                .stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toList());
+        return mapToDtoList(repoService.findByTypeAndDateRange(type, startDate, endDate));
     }
 
     @Override
     public List<TransactionResponseDTO> getTransactionsByPaymentMethod(PaymentMethod paymentMethod) {
-        return repoService.findByPaymentMethod(paymentMethod)
-                .stream()
+        return mapToDtoList(repoService.findByPaymentMethod(paymentMethod));
+    }
+
+    // 🔒 Private helper method to reduce duplication
+    private List<TransactionResponseDTO> mapToDtoList(List<Transaction> transactions) {
+        return transactions.stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
     }
