@@ -29,6 +29,10 @@ public class AccountValidator {
 
 
     public void validateUserExists(String userId) {
+        validateUser(userId);
+    }
+
+    private void validateUser(String userId) {
         if (userService.getUserById(userId) == null) {
             throw new IllegalArgumentException("User not found: " + userId);
         }
@@ -38,6 +42,10 @@ public class AccountValidator {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         Validator validator = factory.getValidator();
         Set<ConstraintViolation<CreateAccountDTO>> violations = validator.validate(dto);
+        checkViolations(violations);
+    }
+
+    private static void checkViolations(Set<ConstraintViolation<CreateAccountDTO>> violations) {
         if (!violations.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + violations);
         }
@@ -49,6 +57,10 @@ public class AccountValidator {
 
     public void validateAmount(BigDecimal amount) {
         Objects.requireNonNull(amount, "Amount cannot be null");
+        checkAmount(amount);
+    }
+
+    private static void checkAmount(BigDecimal amount) {
         if (amount.signum() < 0) {
             throw new IllegalArgumentException("Amount must be non-negative");
         }
@@ -56,12 +68,20 @@ public class AccountValidator {
 
     public void validateLimit(BigDecimal limit) {
         Objects.requireNonNull(limit, "Limit cannot be null");
+        checkNonNegative(limit);
+    }
+
+    private static void checkNonNegative(BigDecimal limit) {
         if (limit.signum() < 0) {
             throw new IllegalArgumentException("Limit must be non-negative");
         }
     }
 
     public void validateAccountStatus(Account account) {
+        checkActiveStatus(account);
+    }
+
+    private static void checkActiveStatus(Account account) {
         if (account.getStatus() == AccountStatus.CLOSED || account.getStatus() == AccountStatus.FROZEN) {
             throw new IllegalStateException("Account is not active");
         }
