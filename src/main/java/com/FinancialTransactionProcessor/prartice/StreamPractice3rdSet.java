@@ -89,6 +89,28 @@ public class StreamPractice3rdSet {
                 .orElse(null);
         System.out.println("\n25️⃣ Department with highest total salary: " + higestSalary);
 
+        List<String> names = Arrays.asList("Shubham", "Amit", "Suresh", "Neha");
+        List<String> sNames = names.stream()
+                .filter(s -> s.startsWith("S"))
+                .collect(Collectors.toList());
+        System.out.println(sNames);
+
+        List<String> stringList2 = names.stream()
+                .map(String::toUpperCase)
+                .collect(Collectors.toList());
+        System.out.println(stringList2);
+
+        List<Integer> nums = Arrays.asList(5, 1, 3, 9);
+
+        nums.stream()
+                .sorted()
+                .collect(Collectors.toUnmodifiableList());
+
+        nums.stream()
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toUnmodifiableList());
+
+
 
 
 
