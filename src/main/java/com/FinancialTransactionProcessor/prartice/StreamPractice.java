@@ -129,13 +129,7 @@ public class StreamPractice {
                 .collect(Collectors.joining(","));
         System.out.println("\n20️⃣ Sorted comma-separated names: " + joinedNames);
 
-        // ✅ Example 21: Find 2nd highest salary employee
 
-        Employee 2ndHigest = employees.stream()
-                .sorted(Comparator.comparing(Employee::getSalary).reversed())
-                .skip(1)
-                .findFirst()
-                .orElse(null);
 
 
     }

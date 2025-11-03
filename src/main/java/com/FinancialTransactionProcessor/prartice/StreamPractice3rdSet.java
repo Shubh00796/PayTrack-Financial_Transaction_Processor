@@ -80,9 +80,14 @@ public class StreamPractice3rdSet {
                 .orElse(null);
         System.out.println("\n22️⃣ Duplicate departments: " + shortName);
 
-        employees.stream()
-                .
-
+        // ✅ Example 25: Find department with highest total salary
+        String higestSalary = employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.summingDouble(Employee::getSalary)))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+        System.out.println("\n25️⃣ Department with highest total salary: " + higestSalary);
 
 
 
