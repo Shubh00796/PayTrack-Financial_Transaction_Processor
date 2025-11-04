@@ -1,4 +1,4 @@
-package com.FinancialTransactionProcessor.practice;
+package com.FinancialTransactionProcessor.prartice;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,6 +51,19 @@ public class StreamPractice4thSet {
 
         Map<Integer, List<Task>> collect1 = tasks.stream()
                 .collect(Collectors.groupingBy(Task::getPriority));
+
+        List<String> stringList = tasks.stream()
+                .collect(Collectors.groupingBy(Task::getName, Collectors.counting()))
+                .entrySet().stream()
+                .filter(stringLongEntry -> stringLongEntry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+
+        tasks.stream()
+                .collect(Collectors.partitioningBy(task -> task.getPriority() > 3));
+
+
 
     }
 }
