@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class InterviewDay1 {
 
@@ -24,6 +23,7 @@ public class InterviewDay1 {
     }
 
     public static void main(String[] args) {
+
         List<Employee> employees = Arrays.asList(
                 new Employee(1, "Rohit", 80000, "Engineering", 28),
                 new Employee(2, "Aisha", 90000, "Engineering", 32),
@@ -35,107 +35,182 @@ public class InterviewDay1 {
                 new Employee(8, "Manish", 47000, "Support", 24)
         );
 
-        //🧠 Find the highest-paid employee in each department.
-        Map<String, Employee> collect = employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.collectingAndThen(
-                        Collectors.maxBy(Comparator.comparingDouble(
+        // 🧠 Q1: Find the highest-paid employee in each department.
+        Map<String, Employee> highestPaidByDept = employees.stream()
+                .collect(Collectors.groupingBy(
+                        Employee::getDepartment,
+                        Collectors.collectingAndThen(
+                                Collectors.maxBy(Comparator.comparingDouble(Employee::getSalary)),
+                                Optional::get
+                        )
+                ));
+
+        highestPaidByDept.forEach((dept, emp) ->
+                System.out.println("Highest-paid in " + dept + " → " + emp.getName() + " (" + emp.getSalary() + ")")
+        );
+
+
+        // 🧠 Q2: Find average salary per department.
+        Map<String, Double> avgSalaryByDept = employees.stream()
+                .collect(Collectors.groupingBy(
+                        Employee::getDepartment,
+                        Collectors.averagingDouble(Employee::getSalary)
+                ));
+
+        System.out.println("Average salary per department: " + avgSalaryByDept);
+
+        // 🧠 Q2: Find higest salary per department.
+        Map<String, Optional<Employee>> collect = employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.maxBy(
+                        Comparator.comparingDouble(
                                 Employee::getSalary
-                        )),
-                        Optional::get
+                        )
                 )));
-        collect.forEach((dept, emp) ->
-                System.out.println("employees with age and dept are here" + " → " + emp.getName() + " (" + emp.getSalary() + ")"));
+        System.out.println("Higest salary per department: " + avgSalaryByDept);
 
-//Find average salary per department.
-        Map<String, Double> stringDoubleMap = employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.averagingDouble(
+        // 🧠 Q2:   Write Java 8 Stream code to find all departments whose total salary of employees exceeds 150,000.
+        //Return a List<String> of department names.
+        List<String> stringList = employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment,
+                        Collectors.summingDouble(
                                 Employee::getSalary
-                        ))
-                );
-        System.out.println("Avg highest salary: " + stringDoubleMap);
 
-        //Count employees in each department.
-        Map<String, Long> collect1 = employees.stream()
+                        )))
+                .entrySet().stream()
+                .filter(stringDoubleEntry -> stringDoubleEntry.getValue() > 150000)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+        System.out.println("Departments with total salary > 150000: " + stringList);
+
+
+
+        // 🧠 Q: Find average Age per department.
+        Map<String, Double> stringDoubleMap = employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment,
+                        Collectors.averagingDouble(
+                                Employee::getAge
+                        )));
+
+        System.out.println("Average age per department: " + stringDoubleMap);
+
+
+        Map<Boolean, List<Employee>> engineering = employees.stream()
+                .filter(employee -> employee.getDepartment().equalsIgnoreCase("Engineering") && employee.getSalary() > 80000)
+                .collect(Collectors.groupingBy(employee -> employee.getAge() > 30));
+
+        System.out.println("Engineering employees grouped by age > 30: " + engineering);
+
+
+
+        // 🧠 Q3: Count employees in each department.
+        Map<String, Long> empCountByDept = employees.stream()
                 .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.counting()));
-        System.out.println("Dept count: " + collect1);
 
-        //Get a list of unique departments.
-        List<String> stringList1 = employees.stream()
+        System.out.println("Employee count per department: " + empCountByDept);
+
+
+        // 🧠 Q4: Get a list of unique departments.
+        List<String> uniqueDepartments = employees.stream()
                 .map(Employee::getDepartment)
                 .distinct()
                 .collect(Collectors.toList());
-        System.out.println("uNIQUE DEPTS " + stringList1);
 
-        //Sort employees by salary descending, then by name ascending.
-        List<Employee> collect2 = employees.stream()
-                .sorted(Comparator.comparing(Employee::getName).thenComparing(Comparator.comparingDouble(Employee::getSalary).reversed()))
+        System.out.println("Unique Departments: " + uniqueDepartments);
+
+
+        // 🧠 Q5: Sort employees by salary (descending) then by name (ascending).
+        List<Employee> sortedEmployees = employees.stream()
+                .sorted(
+                        Comparator.comparing(Employee::getName)
+                                .thenComparing(Comparator.comparingDouble(Employee::getSalary).reversed())
+                )
                 .collect(Collectors.toList());
-        System.out.println("sorted names and slaary " + collect2);
+
+        System.out.println("Sorted employees (name asc, salary desc): " + sortedEmployees);
 
 
-//Find second-highest salary in the list of employees.
-        Optional<String> first = employees.stream()
+        // 🧠 Q6: Find second-highest salary in the list of employees.
+        Optional<String> secondHighestSalaryEmployee = employees.stream()
                 .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
                 .skip(1)
                 .map(Employee::getName)
                 .findFirst();
-        System.out.println("Employee with 2nd highest salary: " + first);
 
-//Find the most experienced (oldest) employee in that department.
-        Optional<Employee> engineering = employees.stream()
-                .filter(employee -> employee.getDepartment().equalsIgnoreCase("Engineering"))
+        System.out.println("Employee with 2nd highest salary: " + secondHighestSalaryEmployee.orElse("N/A"));
+
+
+        // 🧠 Q7: Find the most experienced (oldest) employee in the Engineering department.
+        Optional<Employee> oldestInEngineering = employees.stream()
+                .filter(e -> e.getDepartment().equalsIgnoreCase("Engineering"))
                 .max(Comparator.comparingInt(Employee::getAge));
-        System.out.println("here is the list" + engineering);
 
-        OptionalDouble average = employees.stream()
-                .filter(employee -> employee.getAge() < 30)
+        System.out.println("Oldest in Engineering: " + oldestInEngineering.orElse(null));
+
+
+        // 🧠 Q8: Find the average salary of employees younger than 30.
+        OptionalDouble avgSalaryUnder30 = employees.stream()
+                .filter(e -> e.getAge() < 30)
                 .mapToDouble(Employee::getSalary)
                 .average();
 
-        System.out.println("here is the list of the avg salary " + average);
+        System.out.println("Average salary (age < 30): " + avgSalaryUnder30.orElse(0));
 
-        List<String> stringList = employees.stream()
-                .filter(employee -> employee.getName().startsWith("A"))
+
+        // 🧠 Q9: Get list of employees whose names start with 'A'.
+        List<String> namesStartingWithA = employees.stream()
+                .filter(e -> e.getName().startsWith("A"))
                 .map(Employee::getName)
                 .collect(Collectors.toList());
-        System.out.println("Starts with " + stringList);
-        
-        //Partition employees into salary > 50K and salary ≤ 50K using partitioningBy().
 
-        Map<Boolean, List<Employee>> collect3 = employees.stream()
-                .collect(Collectors.partitioningBy(employee -> employee.getSalary() > 50000 ));
-        System.out.println("Starts with " + collect3);
+        System.out.println("Employees with names starting with 'A': " + namesStartingWithA);
 
-        //Find the youngest employee in each department.
-        Map<String, Employee> collect4 = employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.collectingAndThen(
-                        Collectors.minBy(
-                                Comparator.comparingInt(Employee::getAge)
-                        ), Optional::get
-                )));
-        System.out.println("Starts with " + collect4);
 
-        //Find the Oldest employee in each department.
-        Map<String, Employee> collect5 = employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment,
+        // 🧠 Q10: Partition employees into salary > 50K and salary ≤ 50K.
+        Map<Boolean, List<Employee>> partitionedBySalary = employees.stream()
+                .collect(Collectors.partitioningBy(e -> e.getSalary() > 50000));
+
+        System.out.println("Employees partitioned by salary (>50K): " + partitionedBySalary);
+
+
+        // 🧠 Q11: Find the youngest employee in each department.
+        Map<String, Employee> youngestByDept = employees.stream()
+                .collect(Collectors.groupingBy(
+                        Employee::getDepartment,
                         Collectors.collectingAndThen(
-                                Collectors.maxBy(Comparator.comparingInt(Employee::getAge)
-                                ), Optional::get
-
+                                Collectors.minBy(Comparator.comparingInt(Employee::getAge)),
+                                Optional::get
                         )
                 ));
-        System.out.println("Starts with " + collect5);
 
-        //Get the employee with the longest name.
-        Employee employee1 = employees.stream()
-                .max(Comparator.comparing(employee -> employee.getName().length()))
+        System.out.println("Youngest employee in each department: " + youngestByDept);
+
+
+        // 🧠 Q12: Find the oldest employee in each department.
+        Map<String, Employee> oldestByDept = employees.stream()
+                .collect(Collectors.groupingBy(
+                        Employee::getDepartment,
+                        Collectors.collectingAndThen(
+                                Collectors.maxBy(Comparator.comparingInt(Employee::getAge)),
+                                Optional::get
+                        )
+                ));
+
+        System.out.println("Oldest employee in each department: " + oldestByDept);
+
+
+        // 🧠 Q13: Get the employee with the longest name.
+        Employee longestNameEmployee = employees.stream()
+                .max(Comparator.comparing(e -> e.getName().length()))
                 .orElse(null);
 
-        //get the employee with higest age
-        Employee employee = employees.stream()
-                .max(Comparator.comparingInt(value -> value.getAge()))
+        System.out.println("Employee with the longest name: " + longestNameEmployee);
+
+
+        // 🧠 Q14: Get the employee with the highest age.
+        Employee oldestEmployee = employees.stream()
+                .max(Comparator.comparingInt(Employee::getAge))
                 .orElse(null);
 
-
+        System.out.println("Employee with the highest age: " + oldestEmployee);
     }
 }

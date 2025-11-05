@@ -1,0 +1,33 @@
+⚙️ Core Java + Logic
+
+Reverse each word in a string → "Java Stream Rocks" → "avaJ maertS skcoR".
+
+Find the first non-repeating character in a string.
+
+Find frequency of each character in a string using streams.
+
+Given a list of integers, remove duplicates using streams.
+
+Find the sum of all even numbers in a list.
+
+Check if a given string is a palindrome using streams.
+
+Merge two lists and find common elements.
+
+Flatten a list of lists → List<List<Integer>> → single list.
+
+Find top 3 highest salaries in the employee list.
+
+Find employees joined before 2020 (if you have a LocalDate joinDate).
+
+🔥 Extra Real-World Java 8 Scenarios
+
+From a list of transactions, find the total amount spent per customer.
+
+From a list of orders, find the most popular product.
+
+Given nested objects, extract a list of all distinct cities of employees.
+
+Given employee birthdays, find who has birthday this month.
+
+Given a list of strings, sort by length and then alphabetically.
