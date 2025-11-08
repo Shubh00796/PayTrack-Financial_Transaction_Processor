@@ -55,6 +55,17 @@ public class InterviewDay2 {
                                 Employee::getSalary
                         )));
 
+        DoubleSummaryStatistics doubleSummaryStatistics = employees.stream()
+                .mapToDouble(Employee::getSalary)
+                .summaryStatistics();
+
+        doubleSummaryStatistics.getAverage();
+        doubleSummaryStatistics.getMax();
+        doubleSummaryStatistics.getMin();
+
+
+
+
         employees.stream()
                         .collect(Collectors.toMap(Employee::getId,Employee::getName));
 
