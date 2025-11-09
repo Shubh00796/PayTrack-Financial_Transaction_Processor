@@ -34,8 +34,33 @@ public class InterviewDay2 {
                 new Employee(5, "Kunal", 99000, "Engineering", 35),
                 new Employee(6, "Priya", 55000, "Sales", 25),
                 new Employee(7, "Anita", 88000, "Product", 31),
-                new Employee(8, "Manish", 47000, "Support", 24)
-        );
+                new Employee(8, "Manish", 47000, "Support", 24),
+                new Employee(9, "Aisha", 90000, "Engineering", 32)
+
+                );
+
+        employees.stream()
+                .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
+                .limit(3)
+                .collect(Collectors.toList());
+
+        employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment,Collectors.summarizingDouble(
+                        Employee::getSalary
+                )));
+
+        List<String> stringList = employees.stream()
+                .collect(Collectors.groupingBy(Employee::getName))
+                .entrySet().stream()
+                .filter(stringListEntry -> stringListEntry.getValue().size() > 1)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        employees.stream()
+                .filter(employee -> employee.getAge() < 30 && employee.getAge() < 35 && employee.getAge() > 35)
+                .collect(Collectors.summarizingDouble(Employee::getAge));
+
+
 
 
         Employee e = employees.stream()
