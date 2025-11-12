@@ -26,6 +26,8 @@ public class InterviewDay2 {
     }
 
     public static void main(String[] args) {
+
+
         List<Employee> employees = Arrays.asList(
                 new Employee(1, "Rohit", 80000, "Engineering", 28),
                 new Employee(2, "Aisha", 90000, "Engineering", 32),
@@ -37,17 +39,17 @@ public class InterviewDay2 {
                 new Employee(8, "Manish", 47000, "Support", 24),
                 new Employee(9, "Aisha", 90000, "Engineering", 32)
 
-                );
-
-        employees.stream()
-                .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
-                .limit(3)
-                .collect(Collectors.toList());
+        );
 
         employees.stream()
                 .collect(Collectors.groupingBy(Employee::getDepartment,Collectors.summarizingDouble(
                         Employee::getSalary
                 )));
+
+                employees.stream()
+                .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
+                .limit(3)
+                .collect(Collectors.toList());
 
         List<String> stringList = employees.stream()
                 .collect(Collectors.groupingBy(Employee::getName))
