@@ -42,11 +42,49 @@ public class InterviewDay2 {
         );
 
         employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment,Collectors.summarizingDouble(
+                .filter(employee -> employee.getSalary() > 850000)
+                .map(Employee::getSalary)
+                .collect(Collectors.toList());
+
+        employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.counting()));
+
+        employees.stream()
+                .filter(employee -> employee.getDepartment().equalsIgnoreCase("Engineering"))
+                .max(Comparator.comparingDouble(Employee::getSalary))
+                .orElse(null);
+
+        employees.stream()
+                .filter(employee -> employee.getDepartment().equalsIgnoreCase("Engineering"))
+                .min(Comparator.comparingDouble(Employee::getSalary))
+                .orElse(null);
+
+        employees.stream()
+                .filter(employee -> employee.getDepartment().equalsIgnoreCase("Engineering"))
+                .collect(Collectors.averagingDouble(Employee::getAge));
+
+        Map<String, DoubleSummaryStatistics> stats = employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.summarizingDouble(Employee::getSalary)));
+        
+stats.forEach((s, doubleSummaryStatistics) -> System.out.println("dept" + doubleSummaryStatistics.getMin()));
+
+
+        Map<String, DoubleSummaryStatistics> statisticsMap = employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.summarizingDouble(Employee::getAge)));
+
+        statisticsMap.forEach(((s, doubleSummaryStatistics) ->
+                System.out.println("Min Age: " + doubleSummaryStatistics.getMin(),                System.out.println("MAX AGE" + doubleSummaryStatistics.getMax());
+
+
+
+        ));
+
+        employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.summarizingDouble(
                         Employee::getSalary
                 )));
 
-                employees.stream()
+        employees.stream()
                 .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
                 .limit(3)
                 .collect(Collectors.toList());
@@ -63,8 +101,6 @@ public class InterviewDay2 {
                 .collect(Collectors.summarizingDouble(Employee::getAge));
 
 
-
-
         Employee e = employees.stream()
                 .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
                 .skip(1)
@@ -78,9 +114,9 @@ public class InterviewDay2 {
                 )));
 
         employees.stream()
-                        .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.summingDouble(
-                                Employee::getSalary
-                        )));
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.summingDouble(
+                        Employee::getSalary
+                )));
 
         DoubleSummaryStatistics doubleSummaryStatistics = employees.stream()
                 .mapToDouble(Employee::getSalary)
@@ -91,16 +127,13 @@ public class InterviewDay2 {
         doubleSummaryStatistics.getMin();
 
 
-
+        employees.stream()
+                .collect(Collectors.toMap(Employee::getId, Employee::getName));
 
         employees.stream()
-                        .collect(Collectors.toMap(Employee::getId,Employee::getName));
-
-        employees.stream()
-                        .filter(employee -> employee.getName().startsWith("A"))
-                                .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
-                                        .collect(Collectors.toList());
-
+                .filter(employee -> employee.getName().startsWith("A"))
+                .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
+                .collect(Collectors.toList());
 
 
         employees.stream()
@@ -118,7 +151,7 @@ public class InterviewDay2 {
                 emp.ifPresent(employee -> System.out.println(dept + " → " + e.getName() + " (" + e.getSalary() + ")"))
         );
 
-       //ilter employees with salary > 50k, sort by name ascending, and collect only names in a list.
+        //ilter employees with salary > 50k, sort by name ascending, and collect only names in a list.
         employees.stream()
                 .filter(employee -> employee.getSalary() > 50000)
                 .sorted(Comparator.comparing(Employee::getName))
@@ -133,7 +166,7 @@ public class InterviewDay2 {
                 .orElse(null);
 
         employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment,Collectors.counting()));
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.counting()));
 
         employees.stream()
                 .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
@@ -148,7 +181,7 @@ public class InterviewDay2 {
 
         //Get list of departments having more than 2 employees
         employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment,Collectors.counting()))
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.counting()))
                 .entrySet().stream()
                 .filter(stringLongEntry -> stringLongEntry.getValue() > 2)
                 .map(Map.Entry::getKey)
@@ -156,7 +189,7 @@ public class InterviewDay2 {
 
         //Get list of departments with average salary greater than 70,000
         employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment,Collectors.averagingDouble(
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.averagingDouble(
                         Employee::getSalary)))
                 .entrySet().stream()
                 .filter(stringDoubleEntry -> stringDoubleEntry.getValue() > 70000)
@@ -192,30 +225,23 @@ public class InterviewDay2 {
 
         employees.stream()
                 .map(Employee::getDepartment)
-                        .distinct()
-                                .collect(Collectors.toSet());
+                .distinct()
+                .collect(Collectors.toSet());
 
         employees.stream()
-                        .collect(Collectors.groupingBy(Employee::getDepartment,Collectors.counting()))
-                                .entrySet().stream()
-                        .filter(stringLongEntry -> stringLongEntry.getValue() > 1)
-                                .map(Map.Entry::getKey)
-                                        .collect(Collectors.toSet());
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.counting()))
+                .entrySet().stream()
+                .filter(stringLongEntry -> stringLongEntry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
 
         employees.stream()
                 .collect(Collectors.partitioningBy(employee -> employee.getAge() < 30));
 
 
-        Predicate<Employee> highSalary = employee ->  employee.getSalary() > 50000;
+        Predicate<Employee> highSalary = employee -> employee.getSalary() > 50000;
 
-        Function<Employee,String> getName = Employee::getName;
-
-
-
-
-
-
-
+        Function<Employee, String> getName = Employee::getName;
 
 
     }
@@ -236,6 +262,4 @@ public class InterviewDay2 {
 //        if( s1.length() != s2.length()) return  false;
 
 
-
-
-    }
+}
