@@ -72,12 +72,10 @@ stats.forEach((s, doubleSummaryStatistics) -> System.out.println("dept" + double
         Map<String, DoubleSummaryStatistics> statisticsMap = employees.stream()
                 .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.summarizingDouble(Employee::getAge)));
 
-        statisticsMap.forEach(((s, doubleSummaryStatistics) ->
-                System.out.println("Min Age: " + doubleSummaryStatistics.getMin(),                System.out.println("MAX AGE" + doubleSummaryStatistics.getMax());
 
 
 
-        ));
+
 
         employees.stream()
                 .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.summarizingDouble(
