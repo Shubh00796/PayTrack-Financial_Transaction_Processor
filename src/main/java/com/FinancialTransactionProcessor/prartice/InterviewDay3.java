@@ -103,5 +103,36 @@ public class InterviewDay3 {
         employees.stream()
                 .map(Employee::getName)
                 .collect(Collectors.joining(", "));
+
+        employees.stream()
+                .map(Employee::getName)
+                .flatMap(s -> Arrays.stream(s.split("")))
+                .collect(Collectors.toList());
+
+        employees.stream()
+                .map(Employee::getDepartment)
+                .flatMap(s -> Arrays.stream(s.split(" ")))
+                .collect(Collectors.toList());
+
+        employees.stream()
+                .mapToDouble(Employee::getSalary)
+                .reduce(0.0, Double::sum);
+
+        List<Employee> sorted = employees.stream()
+                .sorted(Comparator.comparing(Employee::getDepartment)
+                        .thenComparing(Employee::getSalary))
+                .collect(Collectors.toList());
+
+        employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment,Collectors.minBy(
+                        Comparator.comparingInt(Employee::getAge)
+                )));
+
+        employees.stream()
+                .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
+                .limit(3)
+                .collect(Collectors.toList());
+
+
     }
 }
