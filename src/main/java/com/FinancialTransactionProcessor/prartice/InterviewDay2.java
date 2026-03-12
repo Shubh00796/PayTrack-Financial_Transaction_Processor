@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -36,33 +35,85 @@ public class InterviewDay2 {
                 new Employee(7, "Anita", 88000, "Product", 31),
                 new Employee(8, "Manish", 47000, "Support", 24),
                 new Employee(9, "Aisha", 90000, "Engineering", 32)
+        );
 
-                );
-
+        // 1️⃣ Get distinct departments
         employees.stream()
-                .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
-                .limit(3)
+                .map(Employee::getDepartment)
+                .distinct()
                 .collect(Collectors.toList());
 
+        // 2️⃣ Find employee with maximum salary
         employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment,Collectors.summarizingDouble(
-                        Employee::getSalary
-                )));
+                .max(Comparator.comparingDouble(Employee::getSalary));
 
-        List<String> stringList = employees.stream()
-                .collect(Collectors.groupingBy(Employee::getName))
+        // 3️⃣ Find minimum salary employee in Engineering department
+        employees.stream()
+                .filter(e -> e.getDepartment().equalsIgnoreCase("Engineering"))
+                .min(Comparator.comparingDouble(Employee::getSalary));
+
+        // 4️⃣ Count employees in each department
+        employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.counting()));
+
+        // 5️⃣ Sort employees by salary in descending order
+        employees.stream()
+                .sorted(Comparator.comparingDouble(Employee::getSalary).reversed());
+
+        // 6️⃣ Get sorted list of employee names alphabetically
+        employees.stream()
+                .sorted(Comparator.comparing(Employee::getName))
+                .map(Employee::getName)
+                .collect(Collectors.toList());
+
+        // 7️⃣ Get names of employees starting with 'A'
+        employees.stream()
+                .filter(e -> e.getName().startsWith("A"))
+                .map(Employee::getName)
+                .collect(Collectors.toList());
+
+        // 8️⃣ Find department with minimum average salary
+        employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.averagingDouble(Employee::getSalary)))
                 .entrySet().stream()
-                .filter(stringListEntry -> stringListEntry.getValue().size() > 1)
+                .min(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
+                .orElse(null);
+
 
         employees.stream()
-                .filter(employee -> employee.getAge() < 30 && employee.getAge() < 35 && employee.getAge() > 35)
-                .collect(Collectors.summarizingDouble(Employee::getAge));
+                        .collect(Collectors.groupingBy(Employee::getSalary,Collectors.counting()));
 
+        // 9️⃣ Partition employees by age > 30
+        employees.stream()
+                .collect(Collectors.partitioningBy(e -> e.getAge() > 30));
 
+        // 🔟 Find department with maximum average salary
+        String s = employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.averagingDouble(Employee::getSalary)))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
 
+        // 11️⃣ Salary statistics (sum, avg, min, max, count)
+        DoubleSummaryStatistics salaryStats = employees.stream()
+                .mapToDouble(Employee::getSalary)
+                .summaryStatistics();
 
+        salaryStats.getSum();
+        salaryStats.getMin();
+        salaryStats.getAverage();
+        salaryStats.getCount();
+
+        // 12️⃣ Departments having more than 1 employee
+        employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.counting()))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey);
+
+        // 13️⃣ Find 2nd highest salary employee
         Employee e = employees.stream()
                 .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
                 .skip(1)
@@ -70,170 +121,119 @@ public class InterviewDay2 {
                 .orElse(null);
         System.out.println("2nd Highest Salary Employee: " + e.getName() + " - " + e.getSalary());
 
-        Map<String, List<String>> collect = employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.mapping(
-                        Employee::getName, Collectors.toList()
-                )));
+        // 14️⃣ Get employees grouped by department (with employee names)
+        Map<String, List<String>> namesByDept = employees.stream()
+                .collect(Collectors.groupingBy(Employee::getDepartment,
+                        Collectors.mapping(Employee::getName, Collectors.toList())));
 
+        // 15️⃣ Total salary per department
         employees.stream()
-                        .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.summingDouble(
-                                Employee::getSalary
-                        )));
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.summingDouble(Employee::getSalary)));
 
-        DoubleSummaryStatistics doubleSummaryStatistics = employees.stream()
-                .mapToDouble(Employee::getSalary)
-                .summaryStatistics();
-
-        doubleSummaryStatistics.getAverage();
-        doubleSummaryStatistics.getMax();
-        doubleSummaryStatistics.getMin();
-
-
-
-
-        employees.stream()
-                        .collect(Collectors.toMap(Employee::getId,Employee::getName));
-
-        employees.stream()
-                        .filter(employee -> employee.getName().startsWith("A"))
-                                .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
-                                        .collect(Collectors.toList());
-
-
-
-        employees.stream()
-                .map(employee -> employee.getSalary() * employee.getSalary())
-                .sorted(Comparator.reverseOrder())
+        // 16️⃣ Find duplicate employee names
+        List<String> duplicateNames = employees.stream()
+                .collect(Collectors.groupingBy(Employee::getName))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue().size() > 1)
+                .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
+        // 17️⃣ Filter employees with salary < 80,000
+        employees.stream()
+                .filter(e1 -> e1.getSalary() < 80000)
+                .map(Employee::getName)
+                .collect(Collectors.toList());
+
+        // 18️⃣ Get highest paid employee per department
         Map<String, Optional<Employee>> topPerDept = employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.maxBy(
-                        Comparator.comparingDouble(Employee::getSalary)
-                )));
+                .collect(Collectors.groupingBy(Employee::getDepartment,
+                        Collectors.maxBy(Comparator.comparingDouble(Employee::getSalary))));
 
         System.out.println("\nTop Salary Employee per Department:");
         topPerDept.forEach((dept, emp) ->
-                emp.ifPresent(employee -> System.out.println(dept + " → " + e.getName() + " (" + e.getSalary() + ")"))
+                emp.ifPresent(employee -> System.out.println(dept + " → " + employee.getName() + " (" + employee.getSalary() + ")"))
         );
 
-       //ilter employees with salary > 50k, sort by name ascending, and collect only names in a list.
+        // 19️⃣ Filter employees with salary > 50k, sort by name ascending, collect only names
         employees.stream()
-                .filter(employee -> employee.getSalary() > 50000)
+                .filter(e2 -> e2.getSalary() > 50000)
                 .sorted(Comparator.comparing(Employee::getName))
                 .map(Employee::getName)
                 .collect(Collectors.toList());
 
+        // 20️⃣ Get departments having more than 2 employees
         employees.stream()
-                .sorted(Comparator.comparingDouble(Employee::getSalary))
-                .skip(1)
-                .findFirst()
-                .map(Employee::getName)
-                .orElse(null);
-
-        employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment,Collectors.counting()));
-
-        employees.stream()
-                .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
-                .limit(3)
-                .map(Employee::getName)
-                .collect(Collectors.toUnmodifiableList());
-
-        employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.averagingInt(
-                        Employee::getAge
-                )));
-
-        //Get list of departments having more than 2 employees
-        employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment,Collectors.counting()))
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.counting()))
                 .entrySet().stream()
-                .filter(stringLongEntry -> stringLongEntry.getValue() > 2)
+                .filter(entry -> entry.getValue() > 2)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
-        //Get list of departments with average salary greater than 70,000
+        // 21️⃣ Get departments with average salary > 70,000
         employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment,Collectors.averagingDouble(
-                        Employee::getSalary)))
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.averagingDouble(Employee::getSalary)))
                 .entrySet().stream()
-                .filter(stringDoubleEntry -> stringDoubleEntry.getValue() > 70000)
+                .filter(entry -> entry.getValue() > 70000)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
-        //Sort the list of employees by salary descending and collect the top 5 highest-paid employees using Streams.
-
+        // 22️⃣ Get top 5 highest-paid employees
         employees.stream()
                 .sorted(Comparator.comparingDouble(Employee::getSalary).reversed())
                 .limit(5)
                 .collect(Collectors.toList());
 
+        // 23️⃣ Get list of Engineering employees
         employees.stream()
-                .filter(employee -> employee.getDepartment().equalsIgnoreCase("Engineering"))
+                .filter(emp -> emp.getDepartment().equalsIgnoreCase("Engineering"))
                 .map(Employee::getName)
                 .collect(Collectors.toUnmodifiableList());
 
+        // 24️⃣ Get 3 youngest employees
         employees.stream()
                 .sorted(Comparator.comparingInt(Employee::getAge))
                 .limit(3)
                 .collect(Collectors.toList());
 
+        // 25️⃣ Average salary of all employees
         employees.stream()
                 .mapToDouble(Employee::getSalary)
                 .average()
                 .orElse(0);
 
-        employees.stream()
-                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.summingDouble(
-                        Employee::getSalary
-                )));
-
+        // 26️⃣ Distinct departments
         employees.stream()
                 .map(Employee::getDepartment)
-                        .distinct()
-                                .collect(Collectors.toSet());
+                .distinct()
+                .collect(Collectors.toSet());
 
+        // 27️⃣ Departments with more than one employee
         employees.stream()
-                        .collect(Collectors.groupingBy(Employee::getDepartment,Collectors.counting()))
-                                .entrySet().stream()
-                        .filter(stringLongEntry -> stringLongEntry.getValue() > 1)
-                                .map(Map.Entry::getKey)
-                                        .collect(Collectors.toSet());
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.counting()))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
 
+        // 28️⃣ Partition employees by age < 30
         employees.stream()
-                .collect(Collectors.partitioningBy(employee -> employee.getAge() < 30));
+                .collect(Collectors.partitioningBy(e4 -> e4.getAge() < 30));
 
-
-        Predicate<Employee> highSalary = employee ->  employee.getSalary() > 50000;
-
-        Function<Employee,String> getName = Employee::getName;
-
-
-
-
-
-
-
-
-
+        // 29️⃣ Example Predicate and Function usage
+        Predicate<Employee> highSalary = emp -> emp.getSalary() > 50000;
+        Function<Employee, String> getName = Employee::getName;
     }
 
-
-    //CHECK IF STRING IS ANAGRAM SILENT = LISTEN => ANAGRAM
+    // 🔠 Check if two strings are anagrams
     public static boolean areAnagramsTraditional(String s1, String s2) {
         if (s1.length() != s2.length()) return false;
         String upperCase1 = s1.toUpperCase();
-        String upperCase = s2.toUpperCase();
-        char[] charArray = upperCase1.toCharArray();
-        char[] charArray1 = upperCase.toCharArray();
-        Arrays.sort(charArray1);
-        Arrays.sort(charArray);
-        return Arrays.equals(charArray1, charArray);
+        String upperCase2 = s2.toUpperCase();
+        char[] arr1 = upperCase1.toCharArray();
+        char[] arr2 = upperCase2.toCharArray();
+        Arrays.sort(arr1);
+        Arrays.sort(arr2);
+        return Arrays.equals(arr1, arr2);
     }
-//    public static boolean arePalindromeTraditional(String s1) {
-//        if( s1.length() != s2.length()) return  false;
 
-
-
-
-    }
+}
